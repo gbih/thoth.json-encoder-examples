@@ -578,3 +578,56 @@ module ``Encode Auto generateEncoderCached works`` =
 "module ``Encode Auto generateEncoderCached works``" |> logtitle
 ``Encode Auto generateEncoderCached works``.actual1 |> log
 ``Encode Auto generateEncoderCached works``.actual2 |> log
+
+HR()
+
+module ``Encode Auto toString works with bigint extra`` =
+    open Thoth.Json
+    let extra =
+        Extra.empty
+        |> Extra.withBigInt
+    let value = { bigintField = 9999999999999999999999I }
+    let actual =
+        Encode.Auto.toString(4, value, extra=extra)
+
+"module ``Encode Auto toString works with bigint extra``" |> logtitle
+``Encode Auto toString works with bigint extra``.actual |> log
+
+HR()
+
+module ``Encode Auto toString works with custom extra`` =
+    open Thoth.Json
+    let extra =
+        Extra.empty
+        |> Extra.withCustom ChildType.Encode ChildType.Decoder
+    let value = { ParentField = { ChildField = "bumbabon" }}
+    let actual =
+        Encode.Auto.toString(4, value, extra=extra)
+
+"module ``Encode Auto toString works with custom extra``" |> logtitle
+``Encode Auto toString works with custom extra``.actual |> log
+
+HR()
+
+module ``Encode Auto toString serializes maps with Guid keys as JSON objects`` =
+    open Thoth.Json
+    open System
+    let m = Map [Guid.NewGuid(), 1; Guid.NewGuid(), 2]
+    let actual = Encode.Auto.toString(4, m)
+
+"module ``Encode Auto toString serializes maps with Guid keys as JSON objects``" |> logtitle
+``Encode Auto toString serializes maps with Guid keys as JSON objects``.actual |> log
+
+HR()
+
+module ``Encode Auto toString works with records with private constructors`` =
+    open Thoth.Json
+    // Foo1 and Foo2 are private
+    let x = { Foo1 = 5; Foo2 = 7.8 } : RecordWithPrivateConstructor
+    let actual = 
+        Encode.Auto.toString(4, x, isCamelCase=true)
+"module ``Encode Auto toString works with records with private constructors``" |> logtitle
+``Encode Auto toString works with records with private constructors``.actual |> log
+
+HR()
+
