@@ -461,3 +461,120 @@ module ``complex structure works`` =
 "module ``complex structure works``" |> logtitle
 ``complex structure works``.actual |> log
 
+HR()
+
+module ``option with a value Some works`` =
+    open Thoth.Json
+    let actual =
+        Encode.object
+            [
+                ("id", Encode.int 1)
+                ("operator", Encode.option Encode.string (Some "maxime"))
+            ]
+            |> Encode.toString 4
+
+"module ``option with a value Some works``" |> logtitle
+``option with a value Some works``.actual |> log
+
+HR()
+
+module ``option without value None works`` =
+    open Thoth.Json
+    let actual =
+        Encode.object
+            [
+                ("Id", Encode.int 1)
+                ("operator", Encode.option Encode.string None)
+            ]
+            |> Encode.toString 4
+
+"module ``option without value None works``" |> logtitle
+``option without value None works``.actual |> log
+
+HR()
+
+module ``by default we keep the case defined in type`` =
+    open Thoth.Json
+    let value =
+        {
+            Id = 0
+            Name = "Maxime"
+            Email = "mail@test.com"
+            followers = 33
+        }
+    let actual =
+        Encode.Auto.toString(4, value)
+
+"module ``by default we keep the case defined in type``" |> logtitle
+``by default we keep the case defined in type``.actual |> log
+
+SECTION()
+
+"Auto Encoders" |> log
+
+SECTION()
+
+module ``forceCamelCase works`` =
+    open Thoth.Json
+    let value =
+        {
+            Id = 0
+            Name = "Maxime"
+            Email = "mail@test.com"
+            followers = 33
+        }
+    let actual =
+        Encode.Auto.toString(4, value, true)
+
+"module ``forceCamelCase works``" |> logtitle
+``forceCamelCase works``.actual |> log
+
+HR()
+
+module ``Encode Auto generateEncoder works`` =
+    open Thoth.Json
+    open System
+    let value = 
+        { 
+            a = 5
+            b = "bar"
+            c = [false, 3; true, 5; false, 10]
+            d = [|Some(Foo 14); None|]
+            e = Map [("oh", { a = 2.; b = 2. }); ("ah", { a = -1.5; b = 0. })]
+            f = DateTime(2018, 11, 28, 11, 10, 29, DateTimeKind.Utc)
+            g = set [{ a = 2.; b = 2. }; { a = -1.5; b = 0. }]
+            h = TimeSpan.FromSeconds(5.)
+        }
+    let encoder = 
+        Encode.Auto.generateEncoder<Record9>()
+    let actual = 
+        encoder value
+        |> Encode.toString 4
+
+"module ``Encode Auto generateEncoder works``" |> logtitle
+``Encode Auto generateEncoder works``.actual |> log
+
+HR()
+
+module ``Encode Auto generateEncoderCached works`` =
+    open Thoth.Json
+    open System
+    let value = 
+        { 
+            a = 5
+            b = "bar"
+            c = [false, 3; true, 5; false, 10]
+            d = [|Some(Foo 14); None|]
+            e = Map [("oh", { a = 2.; b = 2. }); ("ah", { a = -1.5; b = 0. })]
+            f = DateTime(2018, 11, 28, 11, 10, 29, DateTimeKind.Utc)
+            g = set [{ a = 2.; b = 2. }; { a = -1.5; b = 0. }]
+            h = TimeSpan.FromSeconds(5.)
+        }
+    let encoder1 = Encode.Auto.generateEncoderCached<Record9>()
+    let encoder2 = Encode.Auto.generateEncoderCached<Record9>()
+    let actual1 = encoder1 value |> Encode.toString 0
+    let actual2 = encoder2 value |> Encode.toString 0
+
+"module ``Encode Auto generateEncoderCached works``" |> logtitle
+``Encode Auto generateEncoderCached works``.actual1 |> log
+``Encode Auto generateEncoderCached works``.actual2 |> log
