@@ -1,0 +1,1 @@
+enscript -1rG --line-numbers -p -   --word-wrap  --color=0 *.fs   |   pstopdf -i -o SOURCE.pdf && open SOURCE.pdf
