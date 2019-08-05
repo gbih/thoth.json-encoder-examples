@@ -59,6 +59,12 @@ let SECTION() = "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 //-------------------------------
 
+open Fable.Core
+type TypeInfo() =
+    static member f(a:'a, [<Inject>] ?resolver : ITypeResolver<'a>) = resolver.Value.ResolveType()
+
+//-------------------------------
+
 module Random =
     let rand = System.Random()
     let int n = rand.Next(n)
@@ -68,25 +74,25 @@ module Random =
 
 //---------------------
 
-let jsonRecord =
-    """{ "a": 1.0,
-         "b": 2.0,
-         "c": 3.0,
-         "d": 4.0,
-         "e": 5.0,
-         "f": 6.0,
-         "g": 7.0,
-         "h": 8.0 }"""
+// let jsonRecord =
+//     """{ "a": 1.0,
+//          "b": 2.0,
+//          "c": 3.0,
+//          "d": 4.0,
+//          "e": 5.0,
+//          "f": 6.0,
+//          "g": 7.0,
+//          "h": 8.0 }"""
 
-let jsonRecordInvalid =
-    """{ "a": "invalid_a_field",
-         "b": "invalid_a_field",
-         "c": "invalid_a_field",
-         "d": "invalid_a_field",
-         "e": "invalid_a_field",
-         "f": "invalid_a_field",
-         "g": "invalid_a_field",
-         "h": "invalid_a_field" }"""
+// let jsonRecordInvalid =
+//     """{ "a": "invalid_a_field",
+//          "b": "invalid_a_field",
+//          "c": "invalid_a_field",
+//          "d": "invalid_a_field",
+//          "e": "invalid_a_field",
+//          "f": "invalid_a_field",
+//          "g": "invalid_a_field",
+//          "h": "invalid_a_field" }"""
 
 type RecordWithPrivateConstructor = private { Foo1: int; Foo2: float }
 type UnionWithPrivateConstructor = private Bar of string | Baz
@@ -631,3 +637,136 @@ module ``Encode Auto toString works with records with private constructors`` =
 
 HR()
 
+module ``Encode Auto toString works with unions with private constructors`` =
+    open Thoth.Json
+    let x = [Baz; Bar "foo"] 
+    // val x : UnionWithPrivateConstructor list
+
+    let actual = Encode.Auto.toString(4, x, isCamelCase=true)
+
+"module ``Encode Auto toString works with unions with private constructors``" |> logtitle
+``Encode Auto toString works with unions with private constructors``.actual |> log
+
+HR()
+
+module ``Encode Auto toString works with strange types if they are None`` =
+    open Thoth.Json
+    let value =
+        {
+            Id = 0
+            Thread = None
+        }
+    let actual = 
+        Encode.Auto.toString(4, value)
+
+"``Encode Auto toString works with strange types if they are None``" |> logtitle
+``Encode Auto toString works with strange types if they are None``.actual |> log
+
+HR()
+
+module ``Encode Auto toString works with interfaces if they are None`` =
+    open Thoth.Json
+    let value =
+        {
+            Id = 0
+            Interface = None
+        }
+    let actual =
+        Encode.Auto.toString(4, value)
+
+"module ``Encode Auto toString works with interfaces if they are None``" |> logtitle
+``Encode Auto toString works with interfaces if they are None``.actual |> log
+
+HR()
+
+module ``Encode Auto toString works with recursive types`` =
+    open Thoth.Json
+    let vater =
+        {
+            Name = "Alfonso"
+            Children = 
+                [
+                    { Name = "Narumi"; Children = [] }
+                    { Name = "Takumi"; Children = [] }
+                ]
+        }
+    let actual =
+        Encode.Auto.toString(4, vater)
+
+"module ``Encode Auto toString works with recursive types``" |> logtitle
+``Encode Auto toString works with recursive types``.actual |> log
+
+HR()
+
+#if !NETFRAMEWORK
+open Fable.Core
+[<StringEnum>]
+type Camera =
+    | FirstPerson
+    | ArcRotate
+    | IsometricTopDown
+
+module ``Encode Auto toString works with StringEnum`` =
+    open Thoth.Json
+    let actual = 
+        Encode.Auto.toString(4, Camera.FirstPerson)
+
+    let actualDecoded =
+        Decode.Auto.fromString<Camera>(actual)
+
+"module ``Encode Auto toString works with StringEnum``" |> logtitle
+``Encode Auto toString works with StringEnum``.actual |> log
+``Encode Auto toString works with StringEnum``.actualDecoded |> log
+
+HR()
+
+[<StringEnum(CaseRules.LowerFirst)>]
+type Framework =
+    | React
+    | VueJs
+
+module ``Encode Auto toString works with StringEnum CaseRules LowerFirst`` =
+    open Thoth.Json
+    let actual =
+        Encode.Auto.toString(0, Framework.React)
+    let actualDecoded =
+        Decode.Auto.fromString<Framework>(actual)
+
+    let typeInfo = 
+        actual |> TypeInfo.f
+    let typeInfo2 = 
+        actualDecoded |> TypeInfo.f
+
+"module ``Encode Auto toString works with StringEnum CaseRules LowerFirst``" |> logtitle
+``Encode Auto toString works with StringEnum CaseRules LowerFirst``.actual |> log
+``Encode Auto toString works with StringEnum CaseRules LowerFirst``.actualDecoded |> log
+
+HR()
+
+[<StringEnum(CaseRules.None)>]
+type Language =
+    | Fsharp
+    | [<CompiledName("C#")>] Csharp
+
+module ``Encode Auto toString works with StringEnum CaseRules None`` =
+    open Thoth.Json
+    let actual =
+        Encode.Auto.toString(4, Language.Fsharp)
+    let actualDecoded =
+        Decode.Auto.fromString<Language>(actual)
+
+"module ``Encode Auto toString works with StringEnum CaseRules None``" |> logtitle
+``Encode Auto toString works with StringEnum CaseRules None``.actual |> log
+``Encode Auto toString works with StringEnum CaseRules None``.actualDecoded |> log
+
+HR()
+
+module ``Encode Auto toString works with StringEnum plus CompiledName`` =
+    open Thoth.Json
+    let actual =
+        Encode.Auto.toString(4, Language.Csharp)
+
+"module ``Encode Auto toString works with StringEnum plus CompiledName``" |> logtitle
+``Encode Auto toString works with StringEnum plus CompiledName``.actual |> log
+
+#endif

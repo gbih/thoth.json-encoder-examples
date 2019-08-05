@@ -243,20 +243,20 @@ type MyRecType =
     { Name: string
       Children: MyRecType List }
 
-#if !NETFRAMEWORK
-[<StringEnum>]
-type Camera =
-    | FirstPerson
-    | ArcRotate
-    | IsometricTopDown
+// #if !NETFRAMEWORK
+// [<StringEnum>]
+// type Camera =
+//     | FirstPerson
+//     | ArcRotate
+//     | IsometricTopDown
 
-[<StringEnum(CaseRules.LowerFirst)>]
-type Framework =
-    | React
-    | VueJs
+// [<StringEnum(CaseRules.LowerFirst)>]
+// type Framework =
+//     | React
+//     | VueJs
 
-[<StringEnum(CaseRules.None)>]
-type Language =
-    | Fsharp
-    | [<CompiledName("C#")>] Csharp
-#endif
+// [<StringEnum(CaseRules.None)>]
+// type Language =
+//     | Fsharp
+//     | [<CompiledName("C#")>] Csharp
+// #endif
