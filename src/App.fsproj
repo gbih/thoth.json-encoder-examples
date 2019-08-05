@@ -12,5 +12,7 @@
     <PackageReference Include="Fable.Fetch" Version="2.0.0" />
     <PackageReference Include="Fable.Promise" Version="2.0.0" />
     <PackageReference Include="Thoth.Json" Version="3.3.0" />
+<!--     Might not need this in netcoreapp3.0 -->
+<!--     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="All" Version="1.0.0-preview.2" /> -->
   </ItemGroup>
 </Project>

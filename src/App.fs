@@ -88,13 +88,376 @@ let jsonRecordInvalid =
          "g": "invalid_a_field",
          "h": "invalid_a_field" }"""
 
+type RecordWithPrivateConstructor = private { Foo1: int; Foo2: float }
+type UnionWithPrivateConstructor = private Bar of string | Baz
+
 //-------------------------------
-// Primitives
+// Basic
 //-------------------------------
+
+(**
+toString definition:
+
+let toString (space: int) (value: JsonValue) : string =
+    JS.JSON.stringify(value, !!null, space)
+*)
 
 SECTION()
 
-"Primitives" |> logtitle
+"Basic" |> logtitle
 
 SECTION()
+
+module ``a string works`` =
+    open Thoth.Json
+    // which is more idiomatic?
+    let actual =
+        Encode.string "maxime"
+        |> Encode.toString 0
+
+    // or this?
+    let actual2 = 
+        Encode.toString 0 (Encode.string "maxime")
+
+    // Probably the first style, since it's easier to use for longer, more complicated cases.
+
+"module ``a string works``" |> logtitle
+``a string works``.actual |> log
+
+HR()
+
+module ``an int works`` =
+    open Thoth.Json
+    let actual =
+        Encode.int 1
+        |> Encode.toString 0
+
+"module ``an int works``" |> logtitle
+``an int works``.actual |> log
+
+HR()
+
+module ``a float works`` =
+    open Thoth.Json
+    let actual =
+        Encode.float 1.2
+        |> Encode.toString 4
+
+"module ``a float works``" |> logtitle
+``a float works``.actual |> log
+
+HR()
+
+module ``an array works`` =
+    open Thoth.Json
+    let actual =
+        Encode.array
+            [|
+                Encode.string "maxime"
+                Encode.int 2
+            |]
+        // Using this last makes more sense for longer constructs like this:
+        |> Encode.toString 4
+
+"module ``an array works``" |> logtitle
+``an array works``.actual |> log
+
+HR()
+
+module ``a list works`` =
+    open Thoth.Json
+    let actual =
+        Encode.list
+            [
+                Encode.string "maxime"
+                Encode.int 2
+            ]
+        |> Encode.toString 4
+
+"module ``a list works``" |> logtitle
+``a list works``.actual |> log
+
+HR()
+
+module ``a bool works`` =
+    open Thoth.Json
+    let actual =
+        Encode.bool true
+        |> Encode.toString 4
+
+"module ``a bool works``" |> logtitle
+``a bool works``.actual |> log
+
+HR()
+
+module ``a null works`` =
+    open Thoth.Json
+    let actual =
+        //Encode.nil
+        Encode.nil
+        |> Encode.toString 4
+
+"``a null works``" |> logtitle
+``a null works``.actual |> log
+
+HR()
+
+module ``an object works`` =
+    open Thoth.Json
+    let actual =
+        Encode.object
+            [
+                ("firstname", Encode.string "maxime")
+                ("age", Encode.int 25)
+            ]
+            |> Encode.toString 4
+
+"module ``an object works``" |> logtitle
+``an object works``.actual |> log
+
+HR()
+
+module ``a dict works`` =
+    open Thoth.Json
+    let actual =
+        Map.ofList
+            [
+                ("a", Encode.int 1)
+                ("b", Encode.string "2")
+                ("c", Encode.bool true)
+            ]
+        |> Encode.dict
+        |> Encode.toString 4
+
+"module ``a dict works``" |> logtitle
+``a dict works``.actual |> log
+
+HR()
+
+module ``a bigint works`` =
+    open Thoth.Json
+    let actual =
+        Encode.bigint 12I
+        |> Encode.toString 4
+
+"module ``a bigint works``" |> logtitle
+``a bigint works``.actual |> log
+
+HR()
+
+module ``a datetime works`` =
+    open Thoth.Json
+    open System
+    let actual =
+        //DateTime(2018, 10, 1, 11, 12, 15, DateTimeKind.Utc)
+        (DateTime.UtcNow)
+        |> Encode.datetime
+        |> Encode.toString 4
+
+"module ``a datetime works``" |> logtitle
+``a datetime works``.actual |> log
+
+HR()
+
+module ``a datetimeOffset works`` =
+    open Thoth.Json
+    open System
+    let actual =
+        DateTimeOffset(2018, 7, 2, 12, 23, 45, 0, TimeSpan.FromHours(2.))
+        |> Encode.datetimeOffset
+        |> Encode.toString 4
+
+"module ``a datetimeOffset works``" |> logtitle
+``a datetimeOffset works``.actual |> log
+
+HR()
+
+// // get error of: The UTC Offset for Utc DateTime instances must be 0.
+// module ``a datetimeOffset with DateTimeUtcNow works`` =
+//     open Thoth.Json
+//     open System
+//     let actual =
+//         DateTimeOffset(DateTime.UtcNow, TimeSpan.FromHours(1.))
+//         |> Encode.datetimeOffset
+//         |> Encode.toString 4
+
+// "module ``a datetimeOffset with DateTimeUtcNow works``" |> logtitle
+// ``a datetimeOffset with DateTimeUtcNow works``.actual |> log
+
+// HR()
+
+module ``a timeSpan works`` =
+    open Thoth.Json
+    open System
+    let actual =
+        TimeSpan(1, 2, 3, 4, 5)
+        |> Encode.timespan
+        |> Encode.toString 4
+
+"DateTimeUtcNow" |> logtitle
+``a timeSpan works``.actual |> log
+
+HR()
+
+module ``a decimal works`` =
+    open Thoth.Json
+    let actual =
+        0.7833M
+        |> Encode.decimal
+        |> Encode.toString 4
+
+"module ``a decimal works``" |> logtitle
+``a decimal works``.actual |> log
+
+HR()
+
+module ``a guid works`` =
+    open Thoth.Json
+    open System
+    let actual =
+        Guid.Parse("1e5dee25-8558-4392-a9fb-aae03f81068f")
+        |> Encode.guid
+        |> Encode.toString 4
+
+"module ``a guid works``" |> logtitle
+``a guid works``.actual |> log
+
+HR()
+
+module ``a guid works using NewGuid`` =
+    open Thoth.Json
+    open System
+    let value = Guid.NewGuid()
+    let actual =
+        value
+        |> Encode.guid
+        |> Encode.toString 4
+
+"module ``a guid works using NewGuid``" |> logtitle
+``a guid works using NewGuid``.actual |> log
+
+HR()
+
+module ``an int64 works`` =
+    open Thoth.Json
+    let actual =
+        79223209L
+        |> Encode.int64
+        |> Encode.toString 4
+
+"module ``an int64 works``" |> logtitle
+``an int64 works``.actual |>log
+
+HR()
+
+module ``an uint64 works`` =
+    open Thoth.Json
+    let actual =
+        79223209UL
+        |> Encode.uint64
+        |> Encode.toString 4
+
+"module ``an uint64 works``" |> logtitle
+``an uint64 works``.actual |> log
+
+HR()
+
+module ``a tuple2 works`` =
+    open Thoth.Json
+    let actual =
+        Encode.tuple2
+            Encode.int
+            Encode.string
+            (1, "maxime")
+        |> Encode.toString 4
+
+"module ``a tuple2 works``" |> logtitle
+``a tuple2 works``.actual |> log
+
+HR()
+
+module ``a tuple3 works`` =
+    open Thoth.Json
+    let actual =
+        Encode.tuple3
+            Encode.int
+            Encode.string
+            Encode.float
+            (1, "maxime", 2.5)
+        |> Encode.toString 4
+
+"module ``a tuple3 works``" |> logtitle
+``a tuple3 works``.actual |> log
+
+HR()
+
+module ``a tuple4 works`` =
+    open Thoth.Json
+    let actual =
+        Encode.tuple4
+            Encode.int
+            Encode.string
+            Encode.float
+            SmallRecord.Encoder
+            (1, "maxime", 2.5, { fieldA = "test" })
+        |> Encode.toString 4
+
+"module ``a tuple4 works``" |> logtitle
+``a tuple4 works``.actual |> log
+
+HR()
+
+module ``a tuple5 works`` =
+    open Thoth.Json
+    open System
+    let actual =
+        Encode.tuple5
+            Encode.int
+            Encode.string
+            Encode.float
+            SmallRecord.Encoder
+            Encode.datetime
+            (1, "maxime", 2.5, { fieldA = "test" }, DateTime.UtcNow)
+        |> Encode.toString 4
+
+"module ``a tuple5 works``" |> logtitle
+``a tuple5 works``.actual |> log
+
+HR()
+
+// To do: tuple6 -- tuple8
+
+module ``using pretty space works`` =
+    open Thoth.Json
+    let actual =
+        Encode.object
+            [
+                ("firstname", Encode.string "maxime")
+                ("age", Encode.int 25)
+            ]
+            |> Encode.toString 4
+
+"module ``using pretty space works``" |> logtitle
+``using pretty space works``.actual |> log
+
+HR()
+
+module ``complex structure works`` =
+    open Thoth.Json
+    let actual =
+        Encode.object
+            [
+                ("firstname", Encode.string "maxime")
+                ("age", Encode.int 25)
+                ("address", Encode.object
+                    [ 
+                        "street", Encode.string "12 Main Road"
+                        "city", Encode.string "Bordeaux"
+                    ]
+                )
+            ]
+            |> Encode.toString 4
+
+"module ``complex structure works``" |> logtitle
+``complex structure works``.actual |> log
 
