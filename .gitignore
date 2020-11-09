@@ -38,3 +38,6 @@ dumps/
 Scripts/dumps/
 
 ETL/Server/Config/\.keep
+
+.ionide
+.vscode
